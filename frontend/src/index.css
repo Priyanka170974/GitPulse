@@ -1,0 +1,251 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================================================================
+   GitPulse design system
+   A soft indigo canvas, violet/cyan gradients and coral highlights.
+   ================================================================ */
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-mist text-ink font-sans antialiased;
+    background-image: radial-gradient(1200px 700px at 8% -12%, rgba(108, 92, 231, 0.14), transparent 60%),
+      radial-gradient(1000px 650px at 96% -6%, rgba(18, 169, 204, 0.14), transparent 55%),
+      radial-gradient(900px 600px at 50% 108%, rgba(244, 80, 122, 0.1), transparent 60%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display tracking-tight;
+  }
+
+  ::selection {
+    @apply bg-iris-200 text-ink;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #cdc7fb, #9bECF9);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #8b7df3, #2fc9e8);
+    background-clip: padding-box;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid #6c5ce7;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* ---------- surfaces ---------- */
+  .glass {
+    @apply bg-white/75 backdrop-blur-xl border border-white/70;
+  }
+
+  .card {
+    @apply glass rounded-3xl shadow-soft;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lift;
+  }
+
+  .card-interactive {
+    @apply card card-hover cursor-pointer;
+  }
+
+  /* ---------- text ---------- */
+  .text-gradient {
+    @apply bg-iris-aqua bg-clip-text text-transparent;
+  }
+
+  .text-gradient-warm {
+    @apply bg-iris-coral bg-clip-text text-transparent;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full bg-iris-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-iris-600;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100;
+  }
+
+  .btn-primary {
+    @apply btn bg-iris-aqua text-white shadow-soft hover:shadow-lift hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply btn border border-iris-200 bg-white/80 text-iris-700 hover:border-iris-300 hover:bg-iris-50;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-soft hover:bg-iris-50 hover:text-iris-700;
+  }
+
+  .btn-coral {
+    @apply btn bg-iris-coral text-white shadow-soft hover:shadow-lift hover:-translate-y-0.5;
+  }
+
+  .btn-sm {
+    @apply rounded-xl px-3 py-1.5 text-xs;
+  }
+
+  /* ---------- forms ---------- */
+  .field {
+    @apply w-full rounded-2xl border border-iris-100 bg-white/85 px-4 py-3 text-sm text-ink placeholder:text-ink-soft/45 transition-all duration-200 focus:border-iris-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-iris-100;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ink-soft/80;
+  }
+
+  .field-error {
+    @apply mt-1.5 flex items-center gap-1.5 text-xs font-medium text-coral-600;
+  }
+
+  /* ---------- misc ---------- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-xl bg-iris-50;
+  }
+
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  }
+
+  .grid-mesh {
+    background-image: linear-gradient(rgba(108, 92, 231, 0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108, 92, 231, 0.07) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+  }
+
+  .link-underline {
+    @apply relative;
+  }
+  .link-underline::after {
+    content: '';
+    @apply absolute -bottom-0.5 left-0 h-[2px] w-0 rounded-full bg-iris-aqua transition-all duration-300;
+  }
+  .link-underline:hover::after {
+    @apply w-full;
+  }
+
+  /* Animated ellipsis used in loading copy ("Analyzing repository…") */
+  .loading-dots::after {
+    content: '';
+    animation: loading-dots 1.2s steps(4, end) infinite;
+  }
+
+  @keyframes loading-dots {
+    0% {
+      content: '';
+    }
+    25% {
+      content: '.';
+    }
+    50% {
+      content: '..';
+    }
+    75%,
+    100% {
+      content: '...';
+    }
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+  .animate-delay-500 {
+    animation-delay: 500ms;
+  }
+  .animate-delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Recharts polish */
+.recharts-surface:focus,
+.recharts-wrapper:focus {
+  outline: none;
+}
+.recharts-cartesian-axis-tick text {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 11px;
+  fill: #8b86ab;
+}
+.recharts-default-legend {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

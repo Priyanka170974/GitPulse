@@ -1,0 +1,39 @@
+{
+  "name": "gitpulse-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GitPulse API — GitHub repository intelligence & analytics service (MERN)",
+  "main": "src/bootstrap.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/bootstrap.js",
+    "dev": "node --watch src/bootstrap.js",
+    "seed:admin": "node src/scripts/createAdmin.js",
+    "smoke": "node src/scripts/smokeTest.js",
+    "smoke:mock": "node src/scripts/mockGithubSmoke.js",
+    "test:clone": "node src/scripts/cloneAnalyticsTest.js",
+    "test:clone:e2e": "node src/scripts/cloneAnalyticsE2E.js",
+    "check:dns": "node src/scripts/checkDns.js"
+  },
+  "keywords": [
+    "mern",
+    "github",
+    "analytics",
+    "express",
+    "mongodb"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.3"
+  }
+}
