@@ -40,21 +40,60 @@ const allowLoopbackOrigin = !config.isProduction;
 
 const allowAllOrigins = allowedOrigins.has('*');
 
+/**
+ * Rejects unknown browser origins BEFORE the CORS negotiation runs.
+ *
+ * Previously an unknown origin was rejected with `callback(new Error(...))`,
+ * which surfaced as a generic HTTP 500 "Something went wrong on the GitPulse
+ * server" carrying no CORS headers. From the browser that is indistinguishable
+ * from a crashed backend, which is exactly what made a misconfigured CLIENT_URL
+ * so hard to diagnose. A 403 with an explicit code — plus a log line naming the
+ * rejected origin and the allow-list — makes it obvious in the Render logs.
+ */
+const originGate = (req, res, next) => {
+  const origin = req.headers.origin;
+
+  // No Origin header: curl, uptime checks, server-to-server calls.
+  if (!origin) return next();
+
+  const permitted =
+    allowAllOrigins ||
+    allowedOrigins.has(origin) ||
+    (allowLoopbackOrigin && LOCAL_ORIGIN_RE.test(origin));
+
+  if (permitted) return next();
+
+  console.warn(
+    `\x1b[41m✖ CORS rejected\x1b[0m Origin: ${origin}\n` +
+      `   allowed origins : ${[...allowedOrigins].join(', ') || '(none)'}` +
+      `${allowLoopbackOrigin ? ' + any local port (development only)' : ''}\n` +
+      `   fix             : set CLIENT_URL on this server to include ${origin}` +
+      `${process.env.CLIENT_URL ? '' : '  (CLIENT_URL is currently NOT set — production rejects every origin)'}`,
+  );
+
+  return res.status(403).json({
+    success: false,
+    code: 'cors_rejected',
+    message:
+      `Origin ${origin} is not allowed to call this API. ` +
+      'Add this origin to the CLIENT_URL environment variable on the server.',
+    allowedOrigins: [...allowedOrigins],
+  });
+};
+
+app.use(originGate);
+
 app.use(
   cors({
-    origin(origin, callback) {
-      // Allow same-origin/curl (no Origin header) and any configured client URL.
-      if (!origin || allowAllOrigins || allowedOrigins.has(origin)) {
-        return callback(null, true);
-      }
-      // Development only: any locally served frontend.
-      if (allowLoopbackOrigin && LOCAL_ORIGIN_RE.test(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} is not allowed by CORS`));
-    },
+    // Every origin reaching this point has already been vetted above.
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    // Declared explicitly so preflight answers for the headers the frontend
+    // actually sends: JSON bodies and the JWT bearer token.
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    maxAge: 600,
+    optionsSuccessStatus: 204,
   }),
 );
 
@@ -99,15 +138,30 @@ app.use(errorHandler);
 
 /* ---------------------------- lifecycle ----------------------------- */
 
-const server = app.listen(config.port, async () => {
+// Bind to 0.0.0.0 explicitly. Render (and other container hosts) must reach
+// the process on its container interface, not only on loopback. The port
+// always comes from config.port, which reads process.env.PORT — Render sets
+// that automatically.
+const server = app.listen(config.port, '0.0.0.0', async () => {
   console.log('\n\x1b[35m✦ GitPulse API\x1b[0m');
-  console.log(`  → http://localhost:${config.port}/api/health`);
+  console.log(`  → listening on 0.0.0.0:${config.port} (health: /api/health)`);
   console.log(`  → environment: ${config.env}`);
   console.log(
   `  → allowed origins: ${allowAllOrigins ? '* (CLIENT_URL=*)' : [...allowedOrigins].join(', ')}` +
     `${allowLoopbackOrigin ? ' + any local port (development only)' : ''}`,
 );
   console.log(`  → GitHub token: ${config.githubToken ? 'configured' : 'not configured (60 requests/hour limit)'}`);
+
+  // The most common reason a deployed frontend cannot reach this API: CORS
+  // rejects every browser origin because CLIENT_URL was never set.
+  if (config.isProduction && !process.env.CLIENT_URL) {
+    console.warn(
+      '\x1b[41m  ⚠ CLIENT_URL is not set.\x1b[0m\n' +
+        '     CORS will reject every browser origin, so the deployed frontend cannot call this API.\n' +
+        '     Set CLIENT_URL to the deployed frontend origin, e.g.\n' +
+        '     CLIENT_URL=https://your-frontend.vercel.app\n',
+    );
+  }
 
   try {
     await connectDB();
